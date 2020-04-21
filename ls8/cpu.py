@@ -8,9 +8,13 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
+        # create ram with 256 bytes of memory
         self.ram = [0] * 256
-        self.pc = 0
+        # and 8 general purpose registers
         self.reg = [0] * 8
+        # create a program counter to keep track of the address of current instruction
+        self.pc = 0
+        # create instructions
         self.instructions = {
             "LDI": 0b10000010,
             "HLT": 0b00000001,
@@ -68,9 +72,11 @@ class CPU:
         print()
 
     def ram_read(self, mar):  # mar = Memory Address Register
+        # should accept the address and return the value stored
         return self.ram[mar]
 
     def ram_write(self, mdr, mar):  # mdr = Memory Data Register
+        # should accept a value to write and the address to write it to 
         self.ram[mar] = mdr
 
     def run(self):
@@ -78,9 +84,12 @@ class CPU:
         self.trace()
         running = True
         while running:
+            # read the memory address thats stored in register ("pc") and store it in 'IR' ("_Instruction Register_")
             ir = self.ram_read(self.pc)
+            # using ram_read(), read the bytes at PC+1 and PC+2 from RAM and store them in variables operand_a and operand_b
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
+            # depending on the value of the opcode(instruction), perform the actions needed for the instruction and update the PC accordingly
             if ir == self.instructions["HLT"]:
                 running = False
                 self.pc += 1
