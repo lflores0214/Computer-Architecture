@@ -76,11 +76,11 @@ class CPU:
     def run(self):
         """Run the CPU."""
         self.trace()
-        ir = self.ram_read(self.pc)
-        operand_a = self.ram_read(self.pc + 1)
-        operand_b = self.ram_read(self.pc + 2)
         running = True
         while running:
+            ir = self.ram_read(self.pc)
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
             if ir == self.instructions["HLT"]:
                 running = False
                 self.pc += 1
