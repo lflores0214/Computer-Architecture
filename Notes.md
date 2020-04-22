@@ -79,3 +79,66 @@ Byte is 8 bits
 1111   1111
 
 0b11111111 == 255 == 0xff
+
+Bitwise Operations
+-------------------
+
+Boolean:
+  and or True False
+  &&  ||  ( Javascript )
+
+  A    B     A BITWISE-AND B
+-----------------------------
+  0    0           0
+  0    1           0
+  1    0           0
+  1    1           1
+
+Bitwise Operators:
+and: &
+or: |
+not: ~
+xor: ^
+shift right: >>
+shift left:  <<
+
+
+
+  10100100
+& 10110111
+----------
+  10100100
+
+
+  10100100
+& 11111111   "AND mask"
+----------
+  10100100
+
+can use the "AND mask" to extract individual bits from a number
+
+LDI 1000010
+LDI R2,37
+
+pc += 3
+       vv
+ir = 0b10000010 # LDI
+
+  10000010
+& 11000000
+-----------
+  10000000
+  01000000
+  00100000
+  ..
+  00000010
+
+  inst_len = ((ir & 0b1100000) >> 6)+ 1 #3
+  pc += inst_len
+
+
+The elements of computing systems
+
+AND: clear bits to 0, mask out bits
+OR: set bits to 1
+SHIFT: with AND to extract sets of bits

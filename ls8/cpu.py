@@ -1,6 +1,8 @@
 """CPU functionality."""
 
 import sys
+program_file = sys.argv[1]
+program = []
 
 
 class CPU:
@@ -14,11 +16,12 @@ class CPU:
         self.reg = [0] * 8
         # create a program counter to keep track of the address of current instruction
         self.pc = 0
-        # create instructions
+        # create instructions (opcode)
         self.instructions = {
             "LDI": 0b10000010,
             "HLT": 0b00000001,
-            "PRN": 0b01000111
+            "PRN": 0b01000111,
+            "MUL": 0b10100010
         }
 
     def load(self):
@@ -28,16 +31,26 @@ class CPU:
 
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010,  # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111,  # PRN R0
-            0b00000000,
-            0b00000001,  # HLT
-        ]
-
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010,  # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111,  # PRN R0
+        #     0b00000000,
+        #     0b00000001,  # HLT
+        # ]
+        # program = sys.argv[1]
+        with open(program_file) as f:
+            for line in f:
+                line = line.split('#')
+                # print(line)
+                line = line[0].strip()
+                print(line)
+                if line == '':
+                    continue
+                line = int(line, 2)
+                program.append(line)
         for instruction in program:
             self.ram[address] = instruction
             address += 1
@@ -76,7 +89,7 @@ class CPU:
         return self.ram[mar]
 
     def ram_write(self, mdr, mar):  # mdr = Memory Data Register
-        # should accept a value to write and the address to write it to 
+        # should accept a value to write and the address to write it to
         self.ram[mar] = mdr
 
     def run(self):
@@ -94,11 +107,14 @@ class CPU:
                 running = False
                 self.pc += 1
             elif ir == self.instructions["LDI"]:
-                self.reg[operand_a] = 8
+                self.reg[operand_a] = operand_b
                 self.pc += 3
             elif ir == self.instructions["PRN"]:
                 print(self.reg[operand_a])
-                self.pc +=2
+                self.pc += 2
+            elif ir == self.instructions["MUL"]:
+                self.reg[operand_a] *= self.reg[operand_b]
+                self.pc += 3
             else:
                 print("unknown instruction")
                 running = False
