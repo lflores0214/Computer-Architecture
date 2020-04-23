@@ -142,3 +142,31 @@ The elements of computing systems
 AND: clear bits to 0, mask out bits
 OR: set bits to 1
 SHIFT: with AND to extract sets of bits
+
+Stack Frames
+-------------
+#Stack grows downward
+#
+#701:
+#700
+
+
+def mult2(x, y):
+  z = x * y
+  return z
+
+def main():
+  a = 2
+  
+  b = mult2(a, 7)
+  
+  # return pint 2
+  
+  print(b) # 14
+  
+  return
+
+main() 
+
+# return point 1
+print("All Done)

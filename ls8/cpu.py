@@ -27,6 +27,8 @@ class CPU:
             "DIV": 0b10100011,
             "POP": 0b01000110,
             "PUSH": 0b01000101,
+            "CALL": 0b01010000,
+            "RET": 0b00010001
         }
         self.SP = 7
         self.reg[7] = 0xf4
@@ -68,10 +70,10 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-            pc += 3
+            self.pc += 3
         elif op == "SUB":
             self.reg[reg_a] -= self.reg[reg_b]
-            pc += 3
+            self.pc += 3
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
             self.pc += 3
@@ -111,6 +113,7 @@ class CPU:
         running = True
         self.trace()
         while running:
+            inst_len = ()
             # read the memory address thats stored in register ("pc") and store it in 'IR' ("_Instruction Register_")
             ir = self.ram_read(self.pc)
             # using ram_read(), read the bytes at PC+1 and PC+2 from RAM and store them in variables operand_a and operand_b
@@ -131,37 +134,45 @@ class CPU:
 
             elif ir == self.instructions["MUL"]:
                 self.alu("MUL", operand_a, operand_b)
-
+            elif ir == self.instructions["ADD"]:
+                self.alu("ADD", operand_a, operand_b)
             elif ir == self.instructions["SUB"]:
                 self.alu("SUB", operand_a, operand_b)
 
             elif ir == self.instructions["PUSH"]:
                 # decrement the stack pointer
-
                 self.reg[self.SP] -= 1
-
                 # copy the value from register into memory
                 reg_num = self.ram[self.pc+1]
-
                 value = self.reg[reg_num]  # this is what we want to push
                 address = self.reg[self.SP]
                 # store the value on the stack
                 self.ram[address] = value
-
                 self.pc += 2
             elif ir == self.instructions["POP"]:
                 # copy the value from the address pointed to by 'SP', to the given register
-
                 value = self.ram_read(self.reg[self.SP])
-
                 self.reg[operand_a] = value
-
                 # increment the stack pointer
-                # print(f'pop self.sp before: {self.reg[self.SP]}')
                 self.reg[self.SP] += 1
-                # print(f'pop self.sp after: {self.reg[self.SP]}')
                 self.pc += 2
+            elif ir == self.instructions["CALL"]:
+                # set the return address
+                ret_add = self.pc + 2
+                # decrement the stack pointer
+                self.reg[self.SP] -= 1
+                self.ram[self.reg[self.SP]] = ret_add
+                # set the pc to the value in the given register
+                reg_num = self.ram[self.pc + 1]
+                dest_add = self.reg[reg_num]
 
+                self.pc = dest_add
+            elif ir == self.instructions["RET"]:
+                # pop the return address from the top of the stack
+                ret_add = self.ram[self.reg[self.SP]]
+                self.reg[self.SP] += 1
+                # set the pc
+                self.pc = ret_add
             else:
                 print("unknown instruction")
                 running = False

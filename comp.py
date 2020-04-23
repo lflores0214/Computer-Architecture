@@ -10,6 +10,8 @@ SAVE_REG = 3  # Store a value in a register ( in the LS8 called LDI)
 PRINT_REG = 4  # corresponds to PRN in the LS8
 PUSH = 5
 POP = 6
+CALL = 7
+RET = 8
 
 # memory = [
 #     PRINT_LUIS,
@@ -23,6 +25,7 @@ POP = 6
 # ]
 memory = [0] * 256
 register = [0] * 8  # like variables R0-R7
+
 SP = 7
 register[SP] = 0xf4
 # load program into memory
@@ -65,12 +68,29 @@ while running:
 
         # copy the value from register into memory
         reg_num = memory[pc + 1]
-        value = register[reg_num] # this is what we want to push
+        value = register[reg_num]  # this is what we want to push
 
         address = register[SP]
-        memory[address] = value # store the value on the stack
+        memory[address] = value  # store the value on the stack
 
         pc += 2
+    elif inst == CALL:
+        return_address = pc + 2
+        # decrement the stack pinter
+        register[SP] -= 1
+        memory[register[SP]] = return_address
+        # set the pc to the value in the given register
+        reg_num = memory[pc + 1]
+        dest_address = register[reg_num]
+
+        pc = dest_address
+    elif inst == RET:
+        # pop return address from top of stack
+        return_address = memory[register[SP]]
+        register[SP] += 1
+
+        # set the pc
+        pc = return_address
     elif inst == HALT:
         running = False
     else:
