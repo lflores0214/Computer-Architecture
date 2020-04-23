@@ -296,10 +296,9 @@ a high address) and grows _downward_ as things are pushed on. The LS-8 is no
 exception to this.
 
 Implement a system stack per the spec. Add `PUSH` and `POP` instructions. Read
-  the beginning of the spec to see which register is the stack pointer. 
-  
-* Values themselves should be saved in the ***portion of RAM*** _that is allocated for the stack_. 
-  -  Use the stack pointer to modify the correct block of memory. 
+  the beginning of the spec to see which register is the stack pointer.
+* Values themselves should be saved in the ***portion of RAM*** _that is allocated for the stack_.
+  -  Use the stack pointer to modify the correct block of memory.
   - Make sure you update the stack pointer appropriately as you `PUSH` and `POP` items to and from the stack.
 
 If you run `python3 ls8.py examples/stack.ls8` you should see the output:
@@ -320,7 +319,7 @@ enables you to create reusable functions.
 Subroutines have many similarities to functions in higher-level languages. Just
 as a function in C, JavaScript or Python will jump from the function call, to
 its definition, and then return back to the line of code following the call,
-subroutines will also allow us to execute instructions non-sequentially. 
+subroutines will also allow us to execute instructions non-sequentially.
 
 The stack is used to hold the return address used by `RET`, so you **must**
 implement the stack in step 10, first. Then, add subroutine instructions `CALL`
