@@ -6,7 +6,6 @@ program = []
 
 
 
-
 class CPU:
     """Main CPU class."""
 
@@ -18,7 +17,7 @@ class CPU:
         self.ir = 0
         self.SP = 7
         self.reg[7] = 0xF4
-                       # LGE
+        # LGE
         self.fl = 0b00000000
 
         self.instructions = {
@@ -43,87 +42,7 @@ class CPU:
     def load(self):
         """Load a program into memory."""
         address = 0
-        # program = [
-        #     0b10000010, # LDI R0,10
-        #     0b00000000,
-        #     0b00001010,
-        #     0b10000010, # LDI R1,20
-        #     0b00000001,
-        #     0b00010100,
-        #     0b10000010, # LDI R2,TEST1
-        #     0b00000010,
-        #     0b00010011,
-        #     0b10100111, # CMP R0,R1
-        #     0b00000000,
-        #     0b00000001,
-        #     0b01010101, # JEQ R2
-        #     0b00000010,
-        #     0b10000010, # LDI R3,1
-        #     0b00000011,
-        #     0b00000001,
-        #     0b01000111, # PRN R3
-        #     0b00000011,
-        #     # TEST1 ,(address 19):
-        #     0b10000010, # LDI R2,TEST2
-        #     0b00000010,
-        #     0b00100000,
-        #     0b10100111, # CMP R0,R1
-        #     0b00000000,
-        #     0b00000001,
-        #     0b01010110, # JNE R2
-        #     0b00000010,
-        #     0b10000010, # LDI R3,2
-        #     0b00000011,
-        #     0b00000010,
-        #     0b01000111, # PRN R3
-        #     0b00000011,
-        #     # TEST2 ,(address 32):
-        #     0b10000010, # LDI R1,10
-        #     0b00000001,
-        #     0b00001010,
-        #     0b10000010, # LDI R2,TEST3
-        #     0b00000010,
-        #     0b00110000,
-        #     0b10100111, # CMP R0,R1
-        #     0b00000000,
-        #     0b00000001,
-        #     0b01010101, # JEQ R2
-        #     0b00000010,
-        #     0b10000010, # LDI R3,3
-        #     0b00000011,
-        #     0b00000011,
-        #     0b01000111, # PRN R3
-        #     0b00000011,
-        #     # TEST3 ,(address 48):
-        #     0b10000010, # LDI R2,TEST4
-        #     0b00000010,
-        #     0b00111101,
-        #     0b10100111, # CMP R0,R1
-        #     0b00000000,
-        #     0b00000001,
-        #     0b01010110, # JNE R2
-        #     0b00000010,
-        #     0b10000010, # LDI R3,4
-        #     0b00000011,
-        #     0b00000100,
-        #     0b01000111, # PRN R3
-        #     0b00000011,
-        #     # TEST4 ,(address 61):
-        #     0b10000010, # LDI R3,5
-        #     0b00000011,
-        #     0b00000101,
-        #     0b01000111, # PRN R3
-        #     0b00000011,
-        #     0b10000010, # LDI R2,TEST5
-        #     0b00000010,
-        #     0b01001001,
-        #     0b01010100, # JMP R2
-        #     0b00000010,
-        #     0b01000111, # PRN R3
-        #     0b00000011,
-        #     # TEST5 (address 73):
-        #     0b00000001 # HLT
-        # ]
+
         with open(program_file) as f:
             for line in f:
                 line = line.split('#')
@@ -153,17 +72,21 @@ class CPU:
             self.pc += 3
         elif op == "CMP":
             if self.reg[reg_a] < self.reg[reg_b]:
+                # if registerA is less than registerB set the "L" flag to 1
+                #         0b00000LGE
                 self.fl = 0b00000100
-                print("fl",self.fl)
+
             elif self.reg[reg_a] > self.reg[reg_b]:
+                #           00000LGE
                 self.fl = 0b00000010
-                print("fl",self.fl)
+
             elif self.reg[reg_a] == self.reg[reg_b]:
+                #           00000LGE
                 self.fl = 0b00000001
-                print("fl",self.fl)
+
             else:
                 self.fl = 0b00000000
-                print("fl",self.fl)
+
             self.pc += 3
         else:
             raise Exception("Unsupported ALU operation")
@@ -196,7 +119,7 @@ class CPU:
             ir = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
-            self.trace()
+            # self.trace()
             if ir == self.instructions["HLT"]:
                 running = False
                 self.pc += 1
@@ -257,8 +180,9 @@ class CPU:
                 else:
                     self.pc += 2
             elif ir == self.instructions["JNE"]:
-                if self.fl != 0b00000001:
-                    self.pc == self.reg[operand_a]
+                if self.fl & 0b00000001 == 0:
+                # if self.fl == 0b00000000:
+                    self.pc = self.reg[operand_a]
                 else:
                     self.pc += 2
             else:
