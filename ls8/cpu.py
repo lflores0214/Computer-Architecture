@@ -4,17 +4,7 @@ import sys
 program_file = sys.argv[1]
 program = []
 
-LDI = 0b10000010
-HLT = 0b00000001
-PRN = 0b01000111
-MUL = 0b10100010
-ADD = 0b10100000
-SUB = 0b10100001
-DIV = 0b10100011
-POP = 0b01000110
-RET = 0b00010001
-PUSH = 0b01000101
-CALL = 0b01010000
+
 
 
 class CPU:
@@ -27,7 +17,9 @@ class CPU:
         self.pc = 0
         self.ir = 0
         self.SP = 7
-        # self.reg[7] = 0xF4
+        self.reg[7] = 0xF4
+                       # LGE
+        self.fl = 0b00000000
 
         self.instructions = {
             "LDI": 0b10000010,
@@ -39,23 +31,99 @@ class CPU:
             "DIV": 0b10100011,
             "POP": 0b01000110,
             "RET": 0b00010001,
+            "JMP": 0b01010100,
+            "CMP": 0b10100111,
+            "JEQ": 0b01010101,
+            "JNE": 0b01010110,
             "PUSH": 0b01000101,
-            "CALL": 0b01010000
+            "CALL": 0b01010000,
+
         }
-        self.instructions[LDI] = self.handle_ldi
-        self.instructions[PRN] = self.handle_prn
-        self.instructions[MUL] = self.handle_mul
-        self.instructions[ADD] = self.handle_add
-        self.instructions[SUB] = self.handle_sub
-        self.instructions[DIV] = self.handle_div
-        self.instructions[POP] = self.handle_pop
-        self.instructions[PUSH] = self.handle_push
-        self.instructions[CALL] = self.handle_call
-        self.instructions[RET] = self.handle_ret
 
     def load(self):
         """Load a program into memory."""
         address = 0
+        # program = [
+        #     0b10000010, # LDI R0,10
+        #     0b00000000,
+        #     0b00001010,
+        #     0b10000010, # LDI R1,20
+        #     0b00000001,
+        #     0b00010100,
+        #     0b10000010, # LDI R2,TEST1
+        #     0b00000010,
+        #     0b00010011,
+        #     0b10100111, # CMP R0,R1
+        #     0b00000000,
+        #     0b00000001,
+        #     0b01010101, # JEQ R2
+        #     0b00000010,
+        #     0b10000010, # LDI R3,1
+        #     0b00000011,
+        #     0b00000001,
+        #     0b01000111, # PRN R3
+        #     0b00000011,
+        #     # TEST1 ,(address 19):
+        #     0b10000010, # LDI R2,TEST2
+        #     0b00000010,
+        #     0b00100000,
+        #     0b10100111, # CMP R0,R1
+        #     0b00000000,
+        #     0b00000001,
+        #     0b01010110, # JNE R2
+        #     0b00000010,
+        #     0b10000010, # LDI R3,2
+        #     0b00000011,
+        #     0b00000010,
+        #     0b01000111, # PRN R3
+        #     0b00000011,
+        #     # TEST2 ,(address 32):
+        #     0b10000010, # LDI R1,10
+        #     0b00000001,
+        #     0b00001010,
+        #     0b10000010, # LDI R2,TEST3
+        #     0b00000010,
+        #     0b00110000,
+        #     0b10100111, # CMP R0,R1
+        #     0b00000000,
+        #     0b00000001,
+        #     0b01010101, # JEQ R2
+        #     0b00000010,
+        #     0b10000010, # LDI R3,3
+        #     0b00000011,
+        #     0b00000011,
+        #     0b01000111, # PRN R3
+        #     0b00000011,
+        #     # TEST3 ,(address 48):
+        #     0b10000010, # LDI R2,TEST4
+        #     0b00000010,
+        #     0b00111101,
+        #     0b10100111, # CMP R0,R1
+        #     0b00000000,
+        #     0b00000001,
+        #     0b01010110, # JNE R2
+        #     0b00000010,
+        #     0b10000010, # LDI R3,4
+        #     0b00000011,
+        #     0b00000100,
+        #     0b01000111, # PRN R3
+        #     0b00000011,
+        #     # TEST4 ,(address 61):
+        #     0b10000010, # LDI R3,5
+        #     0b00000011,
+        #     0b00000101,
+        #     0b01000111, # PRN R3
+        #     0b00000011,
+        #     0b10000010, # LDI R2,TEST5
+        #     0b00000010,
+        #     0b01001001,
+        #     0b01010100, # JMP R2
+        #     0b00000010,
+        #     0b01000111, # PRN R3
+        #     0b00000011,
+        #     # TEST5 (address 73):
+        #     0b00000001 # HLT
+        # ]
         with open(program_file) as f:
             for line in f:
                 line = line.split('#')
@@ -83,6 +151,20 @@ class CPU:
         elif op == "DIV":
             self.reg[reg_a] /= self.reg[reg_b]
             self.pc += 3
+        elif op == "CMP":
+            if self.reg[reg_a] < self.reg[reg_b]:
+                self.fl = 0b00000100
+                print("fl",self.fl)
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.fl = 0b00000010
+                print("fl",self.fl)
+            elif self.reg[reg_a] == self.reg[reg_b]:
+                self.fl = 0b00000001
+                print("fl",self.fl)
+            else:
+                self.fl = 0b00000000
+                print("fl",self.fl)
+            self.pc += 3
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -107,53 +189,6 @@ class CPU:
     def ram_write(self, mdr, mar):
         self.ram[mar] = mdr
 
-    def handle_ldi(self, operand_a=None, operand_b=None):
-        self.reg[operand_a] = operand_b
-        self.pc += 3
-
-    def handle_prn(self, operand_a=None, operand_b=None):
-        print(self.reg[operand_a])
-        self.pc += 2
-
-    def handle_mul(self, operand_a=None, operand_b=None):
-        self.alu("MUL", operand_a, operand_b)
-
-    def handle_add(self, operand_a=None, operand_b=None):
-        self.alu("ADD", operand_a, operand_b)
-
-    def handle_sub(self, operand_a=None, operand_b=None):
-        self.alu("SUB", operand_a, operand_b)
-
-    def handle_div(self, operand_a=None, operand_b=None):
-        self.alu("DIV", operand_a, operand_b)
-
-    def handle_push(self, operand_a=None, operand_b=None):
-        self.reg[self.SP] -= 1
-        reg_num = operand_a
-        value = self.reg[reg_num]
-        address = self.reg[self.SP]
-        self.ram[address] = value
-        self.pc += 2
-
-    def handle_pop(self, operand_a=None, operand_b=None):
-        value = self.ram_read(self.reg[self.SP])
-        self.reg[operand_a] = value
-        self.reg[self.SP] += 1
-        self.pc += 2
-
-    def handle_call(self, operand_a=None, operand_b=None):
-        ret_add = self.pc + 2
-        self.reg[self.SP] -= 1
-        self.ram[self.reg[self.SP]] = ret_add
-        reg_num = self.ram[self.pc+1]
-        dest_add = self.reg[reg_num]
-        self.pc = dest_add
-
-    def handle_ret(self, operand_a=None, operand_b=None):
-        ret_add = self.ram[self.reg[self.SP]]
-        self.reg[self.SP] += 1
-        self.pc = ret_add
-
     def run(self):
         """Run the CPU."""
         running = True
@@ -161,7 +196,7 @@ class CPU:
             ir = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
-
+            self.trace()
             if ir == self.instructions["HLT"]:
                 running = False
                 self.pc += 1
@@ -209,7 +244,23 @@ class CPU:
                 ret_add = self.ram[self.reg[self.SP]]
                 self.reg[self.SP] += 1
                 self.pc = ret_add
+            # ---------------------------------------
+            elif ir == self.instructions["CMP"]:
+                self.alu("CMP", operand_a, operand_b)
 
+            elif ir == self.instructions["JMP"]:
+                self.pc = self.reg[operand_a]
+
+            elif ir == self.instructions["JEQ"]:
+                if self.fl == 0b00000001:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
+            elif ir == self.instructions["JNE"]:
+                if self.fl != 0b00000001:
+                    self.pc == self.reg[operand_a]
+                else:
+                    self.pc += 2
             else:
                 print("unknown instruction")
                 running = False
